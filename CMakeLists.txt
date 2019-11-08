@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.8)
+
+project(plasma)
+
+set(SOURCE main.cpp)
+
+add_executable(${PROJECT_NAME} ${SOURCE})
