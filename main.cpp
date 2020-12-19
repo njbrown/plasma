@@ -15,16 +15,19 @@ struct RGBColor
 
 int main()
 {
-    int comp = 3;
-    RGBColor black = {255, 0, 0};
-    RGBColor data[100 * 100 * sizeof(RGBColor)];
+    const int imageWidth = 256;
+    const int imageHeight = 256;
 
-    for (int y = 0; y < 100; y++)
+    int comp = 3;
+    RGBColor black = {255, 200, 0};
+    RGBColor data[imageWidth * imageHeight * sizeof(RGBColor)];
+
+    for (int y = 0; y < imageHeight; y++)
     {
-        for (int x = 0; x < 100; x++)
+        for (int x = 0; x < imageWidth; x++)
         {
 
-            data[y * 100 + x] = black;
+            data[y * imageWidth + x] = black;
         }
     }
 
