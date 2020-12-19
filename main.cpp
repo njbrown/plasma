@@ -19,7 +19,7 @@ int main()
     const int imageHeight = 256;
 
     int comp = 3;
-    RGBColor black = {255, 200, 0};
+    RGBColor black = {255, 200, 200};
     RGBColor data[imageWidth * imageHeight * sizeof(RGBColor)];
 
     for (int y = 0; y < imageHeight; y++)
