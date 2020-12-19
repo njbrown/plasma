@@ -28,7 +28,7 @@ int main()
         }
     }
 
-    stbi_write_png("renders/output.png", 100, 100, 3, (const void *)data, (int)sizeof(RGBColor));
+    stbi_write_png("output.png", 100, 100, 3, (const void *)data, (int)sizeof(RGBColor));
 
     return 0;
 }
