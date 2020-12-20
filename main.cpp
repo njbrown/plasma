@@ -3,6 +3,7 @@
 
 #include "plasma.h"
 #include "scene.h"
+#include "camera.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -68,43 +69,48 @@ int main()
     const float aspectRatio = 16.0f/9.0f;
     const int imageWidth = 1024;
     const int imageHeight = (int)(imageWidth / aspectRatio);
-
-    // camera props
-    const float focalLength = 1.0f;
-    auto viewportHeight = 2.0;
-    auto viewportWidth = aspectRatio * viewportHeight;
-
-    auto origin = vec3(0, 0, 0);
-    auto horizontal = vec3(viewportWidth, 0, 0);
-    auto vertical = vec3(0, -viewportHeight, 0);// flip the y
-    auto lowerLeftCorner = origin - horizontal/2 - vertical/2 - vec3(0, 0, focalLength);
+    
+    Camera camera(aspectRatio, 1.0);
+    int samplesPerPixel = 100;
+    float colorScale = 1.0/samplesPerPixel;
 
     int comp = 3;
     // RGBColor black = {255, 200, 200};
-    RGBColor data[imageWidth * imageHeight];
+    RGBColor *data = new RGBColor[imageWidth * imageHeight];
+    color *image = new color[imageWidth * imageHeight];
 
     for (int y = 0; y < imageHeight; y++)
     {
+        std::cerr << "\rScanlines remaining: " << imageHeight - y<< ' ' << std::flush;
         for (int x = 0; x < imageWidth; x++)
         {
-            auto u = float(x)/(float)(imageWidth-1);
-            auto v = float(y)/(float)(imageHeight-1);
-            //std::cout<<u<<", "<<v<<std::endl;
+            color pixelCol(0,0,0);
+            for(int s = 0; s < samplesPerPixel; s++) {
+                auto u = float(x + random_float())/(float)(imageWidth-1);
+                auto v = float(y + random_float())/(float)(imageHeight-1);
 
-            vec3 dir = unit_vector(lowerLeftCorner + u*horizontal + v*vertical - origin);
-            //std::cout<<dir<<std::endl;
+                ray r = camera.getRay(u, v);
+                vec3 col = ray_color(r, scene);
+                pixelCol += col;
+                
+            }
 
-            ray r(origin, dir);
-            vec3 col = ray_color(r, scene);
-            // RGBColor resultColor(col);
-
-            data[y * imageWidth + x] = RGBColor(col);
+            image[y * imageWidth + x] = pixelCol * colorScale;
         }
     }
+
+    // average out samples
+
+    // convert to writeable image
+    for(int i = 0;i<imageWidth * imageHeight; i++)
+        data[i] = RGBColor(image[i]);
 
     stbi_write_png("output.png", imageWidth, imageHeight, 3, (const void *)data, imageWidth * (int)sizeof(RGBColor));
 
     system("xdg-open output.png");
+
+    delete data;
+    delete image;
 
     return 0;
 }
