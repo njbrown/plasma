@@ -46,15 +46,19 @@ float hit_sphere(const point3& center, double radius, const ray& r) {
     }
 }
 
-color ray_color(const ray& r, const HittablePtr& world) {
+color ray_color(const ray& r, const HittablePtr& world, int depth) {
     RayHitResult rec;
-    if (world->hit(r, 0, infinity, rec)) {
-        return 0.5 * (rec.normal + color(1,1,1));
+
+    if (depth > 0 ) {
+        if (world->hit(r, 0.0001, infinity, rec)) {
+            vec3 target = rec.point + rec.normal + random_in_unit_sphere();
+            return 0.5 * ray_color(ray(rec.point, unit_vector(target - rec.point)), world, depth -1);
+        }
     }
 
     vec3 unit_direction = unit_vector(r.direction());
     auto t = 0.5*(unit_direction.y() + 1.0);
-    return (1.0-t)*color(1.0, 1.0, 1.0) + t*color(0.1, 0.1, 0.1);
+    return (1.0-t)*color(0.1, 0.1, 0.1) + t*color(2.0, 2.0, 2.0);
 }
 
 
@@ -67,12 +71,13 @@ int main()
     scene->addObject(SpherePtr(new Sphere(vec3(0,-100.5f,0), 100)));
 
     const float aspectRatio = 16.0f/9.0f;
-    const int imageWidth = 1024;
+    const int imageWidth = 1024 * 0.5;
     const int imageHeight = (int)(imageWidth / aspectRatio);
     
     Camera camera(aspectRatio, 1.0);
     int samplesPerPixel = 100;
     float colorScale = 1.0/samplesPerPixel;
+    const int maxRayDepth = 10;
 
     int comp = 3;
     // RGBColor black = {255, 200, 200};
@@ -90,12 +95,23 @@ int main()
                 auto v = float(y + random_float())/(float)(imageHeight-1);
 
                 ray r = camera.getRay(u, v);
-                vec3 col = ray_color(r, scene);
+                vec3 col = ray_color(r, scene, maxRayDepth);
                 pixelCol += col;
                 
             }
 
-            image[y * imageWidth + x] = pixelCol * colorScale;
+            pixelCol = pixelCol * colorScale;
+            // gamma correct
+            pixelCol[0] = sqrt(pixelCol[0]);
+            pixelCol[1] = sqrt(pixelCol[1]);
+            pixelCol[2] = sqrt(pixelCol[2]);
+
+            // clamp
+            pixelCol[0] = clamp(pixelCol[0], 0, 1);
+            pixelCol[1] = clamp(pixelCol[1], 0, 1);
+            pixelCol[2] = clamp(pixelCol[2], 0, 1);
+
+            image[y * imageWidth + x] = pixelCol;
         }
     }
 
