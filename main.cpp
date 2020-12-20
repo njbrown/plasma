@@ -49,11 +49,13 @@ float hit_sphere(const point3& center, double radius, const ray& r) {
 color ray_color(const ray& r, const HittablePtr& world, int depth) {
     RayHitResult rec;
 
-    if (depth > 0 ) {
-        if (world->hit(r, 0.0001, infinity, rec)) {
-            vec3 target = rec.point + rec.normal + random_in_unit_sphere();
-            return 0.5 * ray_color(ray(rec.point, unit_vector(target - rec.point)), world, depth -1);
-        }
+    if (depth < 0 ) {
+        return color(0,0,0);
+    }
+
+    if (world->hit(r, 0.0001, infinity, rec)) {
+        vec3 target = rec.point + rec.normal + random_in_unit_sphere();
+        return 0.5 * ray_color(ray(rec.point, unit_vector(target - rec.point)), world, depth -1);
     }
 
     vec3 unit_direction = unit_vector(r.direction());
@@ -71,13 +73,13 @@ int main()
     scene->addObject(SpherePtr(new Sphere(vec3(0,-100.5f,0), 100)));
 
     const float aspectRatio = 16.0f/9.0f;
-    const int imageWidth = 1024 * 0.5;
+    const int imageWidth = 1024 * 1.0;
     const int imageHeight = (int)(imageWidth / aspectRatio);
     
     Camera camera(aspectRatio, 1.0);
     int samplesPerPixel = 100;
     float colorScale = 1.0/samplesPerPixel;
-    const int maxRayDepth = 10;
+    const int maxRayDepth = 50;
 
     int comp = 3;
     // RGBColor black = {255, 200, 200};
